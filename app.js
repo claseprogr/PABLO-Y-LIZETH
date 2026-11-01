@@ -194,9 +194,9 @@
   // Los navegadores no dejan sonar música sin un toque del invitado. Se intenta sonar sola;
   // si el navegador lo bloquea, la portada de bienvenida pide un toque en "ABRIR INVITACIÓN".
   async function initMusic() {
-    const audio = $('bgm'), start = $('music-start'), toggle = $('music-toggle'), intro = $('intro');
+    const audio = $('bgm'), toggle = $('music-toggle'), intro = $('intro');
     const closeIntro = () => { intro.classList.add('out'); setTimeout(() => { intro.hidden = true; }, 650); };
-    start.addEventListener('click', closeIntro);
+    intro.addEventListener('click', closeIntro); // tocar en cualquier parte de la bienvenida la abre
     let ok = false;
     try {
       const r = await fetch('audio/musica.mp3', { method: 'HEAD' });
@@ -220,7 +220,7 @@
     toggle.addEventListener('click', () => {
       if (audio.paused) { userPaused = false; audio.play().catch(() => {}); } else { userPaused = true; audio.pause(); }
     });
-    start.addEventListener('click', () => { userPaused = false; audio.play().catch(() => {}); });
+    intro.addEventListener('click', () => { userPaused = false; audio.play().catch(() => {}); });
 
     if (await tryPlay()) { closeIntro(); }
     else {
