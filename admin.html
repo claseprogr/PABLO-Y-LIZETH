@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Administración | Diario de Bodas</title>
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="admin.css">
+</head>
+<body class="admin">
+<main class="adm-wrap">
+  <header class="adm-head">
+    <h1 class="adm-title">Diario de Bodas <span>Administración</span></h1>
+    <div id="who" class="adm-who" hidden><span id="who-email"></span><button id="logout" class="copy" type="button">SALIR</button></div>
+  </header>
+
+  <form id="login" class="adm-card" hidden>
+    <label for="em">Correo</label>
+    <input id="em" type="email" autocomplete="username" required>
+    <label for="pw">Contraseña</label>
+    <input id="pw" type="password" autocomplete="current-password" required>
+    <button class="btn" type="submit">ENTRAR</button>
+    <p id="login-err" class="error" hidden></p>
+  </form>
+
+  <p id="noadmin" class="adm-card error" hidden>Esta cuenta inició sesión, pero no está autorizada como administradora. Revisa el paso 5 de la guía (tabla admins).</p>
+  <p id="noconfig" class="adm-card error" hidden>Falta conectar la base de datos. Edita config.js (paso 3 de la guía).</p>
+
+  <div id="panel" hidden>
+    <section class="adm-card adm-switch">
+      <div>
+        <p class="adm-label">Confirmaciones</p>
+        <p id="state-text" class="adm-state"></p>
+        <p class="adm-hint">Al cerrarlas, nadie puede registrar una respuesta nueva. Las ya registradas se conservan.</p>
+      </div>
+      <button id="toggle" class="btn" type="button"></button>
+    </section>
+
+    <section class="adm-stats" id="stats"></section>
+
+    <section class="adm-card">
+      <div class="adm-bar">
+        <input id="search" type="search" placeholder="Buscar familia o código" aria-label="Buscar">
+        <select id="filter" aria-label="Filtrar por estado">
+          <option value="">Todos los estados</option>
+          <option value="pending">Pendiente</option>
+          <option value="attending">Asistencia confirmada</option>
+          <option value="declined">No asistirán</option>
+        </select>
+        <button id="add" class="btn" type="button">AGREGAR FAMILIA</button>
+        <button id="csv" class="btn btn-ghost" type="button">CSV</button>
+        <button id="xlsx" class="btn btn-ghost" type="button">EXCEL</button>
+      </div>
+      <div class="adm-tablewrap">
+        <table>
+          <thead><tr><th>Código</th><th>Familia</th><th class="n">Cupos</th><th>Estado</th><th class="n">Personas</th><th>Fecha de respuesta</th><th>Acciones</th></tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+      <p id="count" class="adm-hint"></p>
+    </section>
+
+    <section class="adm-card">
+      <h2 class="adm-h2">Historial de cambios</h2>
+      <div class="adm-tablewrap">
+        <table>
+          <thead><tr><th>Fecha y hora</th><th>Quién</th><th>Acción</th><th>Familia</th><th>Detalle</th></tr></thead>
+          <tbody id="log"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</main>
+
+<!-- Agregar familia -->
+<dialog id="dlg-add">
+  <form method="dialog" id="form-add" class="dlg-body">
+    <h2 class="adm-h2">Agregar familia</h2>
+    <label for="add-name">Nombre como aparece en la tarjeta</label>
+    <input id="add-name" required maxlength="120">
+    <label for="add-seats">Cupos</label>
+    <input id="add-seats" type="number" min="1" max="50" value="2" required>
+    <label for="add-code">Código (opcional)</label>
+    <input id="add-code" maxlength="20" placeholder="Ej.: B43">
+    <label class="check"><input id="add-test" type="checkbox"> Es una familia de prueba (no cuenta en las cifras ni en la exportación)</label>
+    <p id="add-err" class="error" hidden></p>
+    <div class="row"><button class="btn btn-ghost" type="button" data-close>CANCELAR</button><button class="btn" type="submit">AGREGAR</button></div>
+  </form>
+</dialog>
+
+<!-- Editar / corregir / eliminar -->
+<dialog id="dlg-edit">
+  <div class="dlg-body">
+    <h2 class="adm-h2" id="edit-title"></h2>
+    <p class="adm-hint" id="edit-status"></p>
+
+    <form id="form-edit">
+      <h3 class="adm-h3">Nombre y cupos</h3>
+      <label for="edit-name">Nombre</label>
+      <input id="edit-name" required maxlength="120">
+      <label for="edit-seats">Cupos</label>
+      <input id="edit-seats" type="number" min="1" max="50" required>
+      <p id="edit-err" class="error" hidden></p>
+      <button class="btn" type="submit">GUARDAR CAMBIOS</button>
+    </form>
+
+    <form id="form-correct" class="dlg-sec">
+      <h3 class="adm-h3">Corregir respuesta (excepcional)</h3>
+      <p class="adm-hint">Los invitados no pueden cambiar su respuesta. Usa esto solo si hubo un error o te avisaron por otro medio. Queda en el historial.</p>
+      <label for="cor-status">Estado</label>
+      <select id="cor-status">
+        <option value="pending">Pendiente</option>
+        <option value="attending">Asistencia confirmada</option>
+        <option value="declined">No asistirán</option>
+      </select>
+      <div id="cor-count-wrap">
+        <label for="cor-count">Personas que asistirán</label>
+        <select id="cor-count"></select>
+      </div>
+      <label for="cor-reason">Motivo de la corrección</label>
+      <textarea id="cor-reason" rows="2" required minlength="3" maxlength="300"></textarea>
+      <p id="cor-err" class="error" hidden></p>
+      <button class="btn" type="submit">APLICAR CORRECCIÓN</button>
+    </form>
+
+    <div class="dlg-sec" id="del-sec">
+      <h3 class="adm-h3">Eliminar invitación</h3>
+      <p class="adm-hint" id="del-hint"></p>
+      <p id="del-err" class="error" hidden></p>
+      <button class="btn btn-danger" id="btn-del" type="button">ELIMINAR INVITACIÓN</button>
+    </div>
+
+    <div class="row"><button class="btn btn-ghost" type="button" data-close>CERRAR</button></div>
+  </div>
+</dialog>
+
+<div id="toast" class="toast" role="status" hidden></div>
+
+<script src="config.js"></script>
+<script src="api.js"></script>
+<script src="admin.js"></script>
+</body>
+</html>
