@@ -119,7 +119,9 @@
       try {
         const data = await Api.rpc('submit_rsvp', { p_token: token, p_attending: attending, p_count: attending ? count : null });
         if (data && (data.result === 'ok' || data.result === 'already' || data.result === 'closed')) {
-          inv = Object.assign(inv, data); return afterLoad();
+          inv = Object.assign(inv, data);
+          if (data.result === 'ok') notify(inv);
+          return afterLoad();
         }
         step = 'choose';
         showError(data && data.result === 'invalid_count' ? 'Esa cantidad no está permitida para tu invitación.' : 'No se pudo guardar. Inténtalo de nuevo.');
@@ -141,6 +143,28 @@
       dynamic, err,
     );
     draw();
+  }
+
+  // Aviso por correo a los novios (FormSubmit). Si falla, la respuesta ya quedó guardada igual.
+  function notify(f) {
+    const to = window.APP_CONFIG && APP_CONFIG.NOTIFY_EMAIL;
+    if (!to) return;
+    const yes = f.status === 'attending';
+    const when = new Date().toLocaleString('es-CO', { timeZone: 'America/Bogota', dateStyle: 'medium', timeStyle: 'short' });
+    fetch('https://formsubmit.co/ajax/' + encodeURIComponent(to), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({
+        _subject: (yes ? 'Confirmó asistencia: ' : 'No asistirá: ') + f.name,
+        _template: 'table', _captcha: 'false',
+        Familia: f.name,
+        Respuesta: yes ? 'SÍ, ASISTIREMOS' : 'NO PODREMOS ASISTIR',
+        'Personas confirmadas': yes ? String(f.confirmed) : '0',
+        'Cupos asignados': String(f.seats),
+        Fecha: when,
+      }),
+      keepalive: true,
+    }).catch(() => {});
   }
 
   function afterLoad() {
@@ -167,16 +191,21 @@
   }
 
   // ---------- música de fondo ----------
-  // El reproductor se activa solo si existe audio/musica.mp3 en el proyecto.
+  // Los navegadores no dejan sonar música sin un toque del invitado. Se intenta sonar sola;
+  // si el navegador lo bloquea, la portada de bienvenida pide un toque en "ABRIR INVITACIÓN".
   async function initMusic() {
-    const audio = $('bgm'), start = $('music-start'), toggle = $('music-toggle');
+    const audio = $('bgm'), start = $('music-start'), toggle = $('music-toggle'), intro = $('intro');
+    const closeIntro = () => { intro.classList.add('out'); setTimeout(() => { intro.hidden = true; }, 650); };
+    start.addEventListener('click', closeIntro);
+    let ok = false;
     try {
       const r = await fetch('audio/musica.mp3', { method: 'HEAD' });
-      if (!r.ok || !/audio/.test(r.headers.get('content-type') || '')) return;
-    } catch { return; }
+      ok = r.ok && /audio/.test(r.headers.get('content-type') || '');
+    } catch { ok = false; }
+    if (!ok) { closeIntro(); return; }
     audio.src = 'audio/musica.mp3';
-    audio.volume = 0.35;
-    audio.preload = 'metadata';
+    audio.volume = 0.4;
+    audio.preload = 'auto';
     let userPaused = false;
 
     const sync = () => {
@@ -186,27 +215,21 @@
     };
     audio.addEventListener('play', sync);
     audio.addEventListener('pause', sync);
+    const tryPlay = async () => { try { await audio.play(); return true; } catch { return false; } };
 
-    async function tryPlay() {
-      try { await audio.play(); start.hidden = true; return true; } catch { return false; }
-    }
     toggle.addEventListener('click', () => {
       if (audio.paused) { userPaused = false; audio.play().catch(() => {}); } else { userPaused = true; audio.pause(); }
     });
-    start.addEventListener('click', async () => { userPaused = false; await tryPlay(); });
+    start.addEventListener('click', () => { userPaused = false; audio.play().catch(() => {}); });
 
-    if (!(await tryPlay())) {
-      start.hidden = false;
-      // Primer toque, clic o tecla en cualquier parte de la página inicia la música.
-      const kick = async () => {
-        if (userPaused || !audio.paused) return cleanup();
-        if (await tryPlay()) cleanup();
-      };
+    if (await tryPlay()) { closeIntro(); }
+    else {
+      // Respaldo: cualquier toque en la página inicia la música.
+      const kick = async () => { if (userPaused || !audio.paused) return cleanup(); if (await tryPlay()) cleanup(); };
       const evs = ['pointerup', 'touchend', 'click', 'keydown'];
       const cleanup = () => evs.forEach((e) => document.removeEventListener(e, kick, true));
       evs.forEach((e) => document.addEventListener(e, kick, true));
     }
-    // Si la pestaña se oculta, pausa; al volver, retoma solo si el invitado no la pausó.
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) audio.pause(); else if (!userPaused) audio.play().catch(() => {});
     });

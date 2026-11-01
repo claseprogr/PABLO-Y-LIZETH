@@ -8,6 +8,17 @@
 <title>Diario de Bodas | Pablo y Lizeth</title>
 <meta property="og:title" content="Diario de Bodas | Pablo y Lizeth">
 <meta property="og:description" content="Empiezan una nueva historia. Sábado, 05 de diciembre 2026.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Diario de Bodas">
+<meta property="og:url" content="https://claseprogr.github.io/PABLO-Y-LIZETH/">
+<meta property="og:image" content="https://claseprogr.github.io/PABLO-Y-LIZETH/img/og.jpg">
+<meta property="og:image:secure_url" content="https://claseprogr.github.io/PABLO-Y-LIZETH/img/og.jpg">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Diario de Bodas: Pablo y Lizeth, sábado 05 de diciembre 2026">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://claseprogr.github.io/PABLO-Y-LIZETH/img/og.jpg">
 <link rel="preload" href="fonts/grenze-gotisch-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/anton-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="styles.css">
@@ -16,7 +27,15 @@
 
 <!-- Reproductor de música (se muestra solo si existe /audio/musica.mp3) -->
 <audio id="bgm" loop preload="none"></audio>
-<button id="music-start" class="music-start" type="button" hidden>ACTIVAR MÚSICA ♫</button>
+<div id="intro" class="intro">
+  <div class="intro-box">
+    <p class="intro-kicker">ÚLTIMA HORA</p>
+    <p class="intro-mast">Diario de Bodas</p>
+    <p class="intro-names">PABLO Y LIZETH</p>
+    <p class="intro-script">Empiezan una nueva historia</p>
+    <button id="music-start" class="btn intro-btn" type="button">ABRIR INVITACIÓN ♫</button>
+  </div>
+</div>
 <button id="music-toggle" class="music-toggle" type="button" aria-label="Pausar música" aria-pressed="true" hidden>
   <svg class="ic-on" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/></svg>
   <svg class="ic-off" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/><path d="M3 3l18 18"/></svg>
