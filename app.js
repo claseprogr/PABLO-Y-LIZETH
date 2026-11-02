@@ -29,7 +29,6 @@
   function head(extra) {
     return [
       el('h3', { text: 'Confirmación de asistencia' }),
-      el('p', { class: 'family', text: inv.name }),
       ...(extra || []),
     ];
   }

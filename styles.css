@@ -94,6 +94,7 @@ a{color:inherit}
 .btn-ghost{background:transparent;color:var(--ink);border:1.5px solid var(--ink)}
 .btn-ghost:hover{background:rgba(0,0,0,.07)}
 .for{display:grid;grid-template-columns:1.25fr 1fr;gap:clamp(16px,4vw,34px);align-items:start}
+.for-rsvp{display:block;max-width:560px;margin:0 auto;padding-bottom:clamp(14px,3vw,22px);border-bottom:1px dotted #777}
 .for .section-title{font-size:clamp(20px,4.6vw,28px)}
 .family-name{font-family:"Script",cursive;font-size:clamp(36px,8vw,52px);line-height:1;margin:.1em 0 0;min-height:1.1em;overflow-wrap:anywhere}
 .family-line{border-top:2px solid var(--ink);margin:2px 0 14px}
