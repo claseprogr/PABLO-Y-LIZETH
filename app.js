@@ -34,6 +34,20 @@
     ];
   }
 
+  // Para quien abre el enlace cuando ya había respondido antes.
+  function renderAlready() {
+    const yes = inv.status === 'attending';
+    box.replaceChildren(
+      ...head(),
+      el('div', { class: 'done' },
+        el('p', { class: 'big', text: '¡MUCHAS GRACIAS POR SU RESPUESTA!' }),
+        el('p', { class: 'thanks', text: 'Este formulario ya fue diligenciado previamente.' }),
+        el('p', { class: 'seal', text: 'RESPUESTA REGISTRADA: ' + (yes ? 'SÍ, ASISTIREMOS · ' + inv.confirmed + (inv.confirmed === 1 ? ' PERSONA' : ' PERSONAS') : 'NO PODREMOS ASISTIR') }),
+      ),
+      el('p', { class: 'note', text: 'Si necesitas hacer un cambio, comunícate con los novios.' }),
+    );
+  }
+
   function renderDone() {
     const yes = inv.status === 'attending';
     box.replaceChildren(
@@ -120,7 +134,7 @@
         const data = await Api.rpc('submit_rsvp', { p_token: token, p_attending: attending, p_count: attending ? count : null });
         if (data && (data.result === 'ok' || data.result === 'already' || data.result === 'closed')) {
           inv = Object.assign(inv, data);
-          if (data.result === 'ok') notify(inv);
+          if (data.result === 'ok') { notify(inv); personalize(); return renderDone(); }
           return afterLoad();
         }
         step = 'choose';
@@ -169,7 +183,7 @@
 
   function afterLoad() {
     personalize();
-    if (inv.status !== 'pending') return renderDone();
+    if (inv.status !== 'pending') return renderAlready();
     if (!inv.open) return renderClosed();
     renderForm();
   }
