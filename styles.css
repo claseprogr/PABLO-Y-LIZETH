@@ -206,3 +206,4 @@ a{color:inherit}
 }
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
 @media print{.music-toggle,.intro{display:none}}
+.for-rsvp .family-name{text-align:center}
